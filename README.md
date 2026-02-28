@@ -65,4 +65,3 @@ A powerful web application that helps users identify phishing websites, scams, a
 
 ---
 
-## 📁 **Project Structure**
