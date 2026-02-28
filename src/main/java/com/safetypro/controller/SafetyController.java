@@ -35,9 +35,13 @@ public class SafetyController {
     public ResponseEntity<Map<String, String>> health() {
         return ResponseEntity.ok(Map.of(
                 "status", "running",
-                "service", "URL Safety Pro",
+                "service", "Website Evaluator",
                 "message", "Server is up and running!"
         ));
+    }
+    @GetMapping("/")
+    public ResponseEntity<String> root() {
+        return ResponseEntity.ok("Website Evaluator is running!");
     }
 
     // Inner class for receiving URL requests
