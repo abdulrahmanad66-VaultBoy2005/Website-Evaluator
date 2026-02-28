@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Website Evaluator · Security Check & Community Reviews</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        /* CSS Variables for themes */
+        :root {
+            --bg-gradient-start: #667eea;
+            --bg-gradient-end: #764ba2;
+            --card-bg: #ffffff;
+            --text-primary: #1a1a1a;
+            --text-secondary: #4a5568;
+            --text-muted: #718096;
+            --border-light: #edf2f7;
+            --input-bg: #ffffff;
+            --input-border: #e2e8f0;
+            --example-btn-bg: #f7fafc;
+            --example-btn-hover: #edf2f7;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+            --warning-bg: rgba(255, 255, 255, 0.5);
+            --form-bg: #f8fafc;
+            --form-border: #e2e8f0;
+        }
+
+        [data-theme="dark"] {
+            --bg-gradient-start: #1a1a2e;
+            --bg-gradient-end: #16213e;
+            --card-bg: #1e1e2f;
+            --text-primary: #e2e8f0;
+            --text-secondary: #a0aec0;
+            --text-muted: #718096;
+            --border-light: #2d3748;
+            --input-bg: #2d3748;
+            --input-border: #4a5568;
+            --example-btn-bg: #2d3748;
+            --example-btn-hover: #4a5568;
+            --shadow-color: rgba(0, 0, 0, 0.3);
+            --warning-bg: rgba(45, 55, 72, 0.7);
+            --form-bg: #2d3748;
+            --form-border: #4a5568;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--bg-gradient-start), var(--bg-gradient-end));
+            min-height: 100vh;
+            padding: 24px;
+            transition: background 0.3s ease;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        /* Dark Mode Toggle */
+        .theme-toggle {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: var(--card-bg);
+            border: 2px solid var(--border-light);
+            border-radius: 40px;
+            padding: 8px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px var(--shadow-color);
+            z-index: 10;
+            transition: all 0.3s ease;
+        }
+
+        .theme-toggle:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px var(--shadow-color);
+        }
+
+        .theme-toggle span {
+            color: var(--text-primary);
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .theme-toggle-icon {
+            font-size: 20px;
+        }
+
+        .main-card {
+            background: var(--card-bg);
+            border-radius: 32px;
+            padding: 48px;
+            margin-top: 60px;
+            box-shadow: 0 25px 50px -12px var(--shadow-color);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: background 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        h1 {
+            color: var(--text-primary);
+            text-align: center;
+            margin-bottom: 12px;
+            font-size: 36px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: var(--text-secondary);
+            margin-bottom: 40px;
+            font-size: 16px;
+            font-weight: 400;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .url-input {
+            flex: 1;
+            padding: 16px 20px;
+            background: var(--input-bg);
+            border: 2px solid var(--input-border);
+            border-radius: 16px;
+            font-size: 16px;
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+        }
+
+        .url-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .check-btn {
+            padding: 16px 32px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 16px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .check-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px -5px rgba(102, 126, 234, 0.4);
+        }
+
+        .check-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .examples {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 24px;
+        }
+
+        .example-btn {
+            background: var(--example-btn-bg);
+            border: 1px solid var(--border-light);
+            padding: 8px 16px;
+            border-radius: 30px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            color: var(--text-secondary);
+            transition: all 0.2s ease;
+        }
+
+        .example-btn:hover {
+            background: var(--example-btn-hover);
+            transform: translateY(-1px);
+        }
+
+        .result-card {
+            margin-top: 32px;
+            padding: 32px;
+            border-radius: 24px;
+            display: none;
+            animation: slideIn 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .result-card.GREEN {
+            background: linear-gradient(135deg, #C6F6D5, #9AE6B4);
+            border: 2px solid #38A169;
+        }
+        .result-card.BLUE {
+            background: linear-gradient(135deg, #BEE3F8, #90CDF4);
+            border: 2px solid #3182CE;
+        }
+        .result-card.YELLOW {
+            background: linear-gradient(135deg, #FEFCBF, #FAF089);
+            border: 2px solid #ECC94B;
+        }
+        .result-card.ORANGE {
+            background: linear-gradient(135deg, #FEEBC8, #FBD38D);
+            border: 2px solid #DD6B20;
+        }
+        .result-card.RED {
+            background: linear-gradient(135deg, #FED7D7, #FEB2B2);
+            border: 2px solid #E53E3E;
+        }
+
+        .verdict {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .domain {
+            color: var(--text-secondary);
+            margin: 12px 0;
+            font-size: 16px;
+            font-weight: 500;
+            word-break: break-all;
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 12px;
+            backdrop-filter: blur(5px);
+        }
+
+        .advice {
+            font-size: 18px;
+            margin: 20px 0 12px;
+            padding: 16px 20px;
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 16px;
+            font-weight: 500;
+            color: var(--text-primary);
+            backdrop-filter: blur(5px);
+        }
+
+        .warnings {
+            margin-top: 20px;
+        }
+
+        .warning-item {
+            padding: 12px 16px;
+            margin: 6px 0;
+            background: rgba(255, 255, 255, 0.4);
+            border-radius: 12px;
+            font-size: 14px;
+            color: var(--text-secondary);
+            backdrop-filter: blur(5px);
+            border-left: 4px solid currentColor;
+        }
+
+        .reviews-section {
+            background: var(--card-bg);
+            border-radius: 32px;
+            padding: 40px;
+            margin-top: 24px;
+            display: none;
+            animation: slideUp 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 20px 40px -12px var(--shadow-color);
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .reviews-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .reviews-header h2 {
+            color: var(--text-primary);
+            font-size: 28px;
+            font-weight: 600;
+            letter-spacing: -0.3px;
+        }
+
+        .rating-summary {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            background: var(--form-bg);
+            padding: 12px 24px;
+            border-radius: 50px;
+            border: 1px solid var(--border-light);
+        }
+
+        .avg-rating {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .total-reviews {
+            color: var(--text-muted);
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .add-review-btn {
+            background: linear-gradient(135deg, #38A169, #2F855A);
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 40px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 12px rgba(56, 161, 105, 0.3);
+        }
+
+        .add-review-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(56, 161, 105, 0.4);
+        }
+
+        .review-form {
+            background: var(--form-bg);
+            padding: 32px;
+            border-radius: 24px;
+            margin-bottom: 32px;
+            border: 2px solid var(--form-border);
+            display: none;
+        }
+
+        .review-form h3 {
+            color: var(--text-primary);
+            font-size: 24px;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .form-note {
+            color: var(--text-muted);
+            font-size: 14px;
+            margin-bottom: 24px;
+        }
+
+        .review-form input,
+        .review-form textarea {
+            width: 100%;
+            padding: 14px 18px;
+            margin-bottom: 20px;
+            background: var(--input-bg);
+            border: 2px solid var(--input-border);
+            border-radius: 14px;
+            font-size: 15px;
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+        }
+
+        .review-form input:focus,
+        .review-form textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .star-rating {
+            display: flex;
+            gap: 12px;
+            font-size: 36px;
+            margin-bottom: 24px;
+            justify-content: center;
+            padding: 10px;
+            background: var(--card-bg);
+            border-radius: 60px;
+            border: 2px solid var(--border-light);
+        }
+
+        .star {
+            color: var(--input-border);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .star.selected {
+            color: #FBBF24;
+            transform: scale(1.1);
+        }
+
+        .star:hover {
+            color: #FBBF24;
+            transform: scale(1.2);
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 10px;
+        }
+
+        .submit-btn {
+            background: linear-gradient(135deg, #38A169, #2F855A);
+            color: white;
+            border: none;
+            padding: 14px 32px;
+            border-radius: 40px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .cancel-btn {
+            background: linear-gradient(135deg, #E53E3E, #C53030);
+            color: white;
+            border: none;
+            padding: 14px 32px;
+            border-radius: 40px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .submit-btn:hover, .cancel-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .reviews-list {
+            max-height: 450px;
+            overflow-y: auto;
+            padding-right: 12px;
+        }
+
+        .reviews-list::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .reviews-list::-webkit-scrollbar-track {
+            background: var(--border-light);
+            border-radius: 10px;
+        }
+
+        .reviews-list::-webkit-scrollbar-thumb {
+            background: var(--text-muted);
+            border-radius: 10px;
+        }
+
+        .review-card {
+            border-bottom: 1px solid var(--border-light);
+            padding: 24px 0;
+            transition: all 0.3s ease;
+        }
+
+        .review-card:hover {
+            background: var(--form-bg);
+            padding: 24px 20px;
+            border-radius: 20px;
+            margin: 0 -20px;
+        }
+
+        .review-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .reviewer-name {
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 16px;
+            background: var(--example-btn-bg);
+            padding: 6px 14px;
+            border-radius: 30px;
+            border: 1px solid var(--border-light);
+        }
+
+        .review-date {
+            color: var(--text-muted);
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .review-stars {
+            color: #FBBF24;
+            font-size: 20px;
+            margin-bottom: 12px;
+            letter-spacing: 2px;
+        }
+
+        .review-text {
+            color: var(--text-secondary);
+            line-height: 1.7;
+            font-size: 15px;
+        }
+
+        .no-reviews {
+            text-align: center;
+            color: var(--text-muted);
+            padding: 50px 30px;
+            background: var(--form-bg);
+            border-radius: 24px;
+            font-size: 16px;
+            border: 2px dashed var(--border-light);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-primary);
+            display: none;
+            font-size: 18px;
+            font-weight: 500;
+        }
+
+        .loading::after {
+            content: '...';
+            animation: dots 1.5s steps(4, end) infinite;
+        }
+
+        @keyframes dots {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60%, 100% { content: '...'; }
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 14px;
+            font-weight: 500;
+            letter-spacing: 0.3px;
+        }
+    </style>
+</head>
+<body data-theme="light">
+<div class="container">
+    <!-- Dark Mode Toggle -->
+    <div class="theme-toggle" onclick="toggleTheme()">
+        <span class="theme-toggle-icon" id="themeIcon">🌙</span>
+        <span id="themeText">Dark Mode</span>
+    </div>
+
+    <div class="main-card">
+        <h1>Website Evaluator</h1>
+        <p class="subtitle">Real-time security analysis · Community verified · Privacy first</p>
+
+        <div class="input-group">
+            <input type="text" class="url-input" id="urlInput" placeholder="Enter website URL (e.g., google.com)" value="https://">
+            <button class="check-btn" onclick="checkUrl()" id="checkBtn">Analyze</button>
+        </div>
+
+        <div class="examples">
+            <button class="example-btn" onclick="useExample('google.com')">google.com</button>
+            <button class="example-btn" onclick="useExample('paypal-secure-verify.com')">paypal-secure-verify.com</button>
+            <button class="example-btn" onclick="useExample('amazon-login.xyz')">amazon-login.xyz</button>
+            <button class="example-btn" onclick="useExample('testsafebrowsing.appspot.com/s/malware.html')">malware-test</button>
+        </div>
+
+        <div id="loading" class="loading">Analyzing website</div>
+
+        <div id="result" class="result-card"></div>
+    </div>
+
+    <!-- Reviews Section -->
+    <div id="reviewsSection" class="reviews-section" style="display: none;">
+        <div class="reviews-header">
+            <div>
+                <h2>Community reviews</h2>
+                <div id="ratingSummary" class="rating-summary" style="display: none;">
+                    <span class="avg-rating" id="avgRating">0.0</span>
+                    <span class="total-reviews" id="totalReviews">(0 reviews)</span>
+                </div>
+            </div>
+            <button onclick="toggleReviewForm()" class="add-review-btn" id="addReviewBtn">
+                <span>✏️</span> Write a review
+            </button>
+        </div>
+
+        <!-- Review Form -->
+        <div id="reviewForm" class="review-form">
+            <h3>Share your experience</h3>
+            <p class="form-note">Help others make informed decisions</p>
+
+            <input type="text" id="reviewerName" placeholder="Your name (optional)">
+
+            <div class="star-rating" id="starRating">
+                <span class="star" onclick="setRating(1)">★</span>
+                <span class="star" onclick="setRating(2)">★</span>
+                <span class="star" onclick="setRating(3)">★</span>
+                <span class="star" onclick="setRating(4)">★</span>
+                <span class="star" onclick="setRating(5)">★</span>
+            </div>
+            <input type="hidden" id="rating" value="0">
+
+            <textarea id="reviewComment" placeholder="Describe your experience with this website..." rows="4"></textarea>
+
+            <div class="form-actions">
+                <button onclick="submitReview()" class="submit-btn">Submit review</button>
+                <button onclick="toggleReviewForm()" class="cancel-btn">Cancel</button>
+            </div>
+        </div>
+
+        <!-- Reviews List -->
+        <div id="reviewsList" class="reviews-list"></div>
+    </div>
+
+    <div class="footer">
+        Website Evaluator · Advanced security analysis · Community driven
+    </div>
+</div>
+
+<script>
+    // Dark Mode Toggle Function
+    function toggleTheme() {
+        const html = document.body;
+        const themeIcon = document.getElementById('themeIcon');
+        const themeText = document.getElementById('themeText');
+
+        if (html.getAttribute('data-theme') === 'light') {
+            html.setAttribute('data-theme', 'dark');
+            themeIcon.textContent = '☀️';
+            themeText.textContent = 'Light Mode';
+        } else {
+            html.setAttribute('data-theme', 'light');
+            themeIcon.textContent = '🌙';
+            themeText.textContent = 'Dark Mode';
+        }
+    }
+
+    // Check system preference on load
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.body.setAttribute('data-theme', 'dark');
+        document.getElementById('themeIcon').textContent = '☀️';
+        document.getElementById('themeText').textContent = 'Light Mode';
+    }
+
+    let currentDomain = '';
+
+    async function checkUrl() {
+        let url = document.getElementById('urlInput').value.trim();
+
+        if (!url || url === 'https://') {
+            alert('Please enter a URL');
+            return;
+        }
+
+        // Show loading
+        document.getElementById('loading').style.display = 'block';
+        document.getElementById('result').style.display = 'none';
+        document.getElementById('reviewsSection').style.display = 'none';
+        document.getElementById('checkBtn').disabled = true;
+
+        try {
+            const response = await fetch('/api/check?url=' + encodeURIComponent(url));
+            const data = await response.json();
+            displayResult(data);
+
+            // Extract domain and load reviews
+            try {
+                const urlObj = new URL(data.url || url);
+                currentDomain = urlObj.hostname.replace('www.', '');
+                loadReviews(currentDomain);
+            } catch (e) {
+                console.error('Error parsing domain:', e);
+            }
+
+        } catch (error) {
+            alert('Error checking URL. Please try again.');
+            console.error(error);
+        } finally {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('checkBtn').disabled = false;
+        }
+    }
+
+    function displayResult(data) {
+        const resultDiv = document.getElementById('result');
+
+        let warningsHtml = '';
+        if (data.warnings && data.warnings.length > 0) {
+            warningsHtml = '<div class="warnings"><h4 style="margin-bottom: 10px;">⚠️ Analysis details</h4>';
+            data.warnings.forEach(warning => {
+                warningsHtml += `<div class="warning-item">• ${warning}</div>`;
+            });
+            warningsHtml += '</div>';
+        }
+
+        resultDiv.className = 'result-card ' + data.colorCode;
+        resultDiv.innerHTML = `
+            <div class="verdict">
+                <span>${data.emoji || '✅'}</span>
+                <span>${data.verdict || 'Result'}</span>
+            </div>
+            <div class="domain">📌 ${data.domain || 'Unknown domain'}</div>
+            <div class="advice">💡 ${data.advice || 'Stay safe online!'}</div>
+            ${warningsHtml}
+        `;
+
+        resultDiv.style.display = 'block';
+    }
+
+    async function loadReviews(domain) {
+        try {
+            const response = await fetch(`/api/reviews/domain/${encodeURIComponent(domain)}`);
+            const data = await response.json();
+            displayReviews(data);
+            document.getElementById('reviewsSection').style.display = 'block';
+        } catch (error) {
+            console.error('Error loading reviews:', error);
+        }
+    }
+
+    function displayReviews(data) {
+        const reviewsList = document.getElementById('reviewsList');
+        const ratingSummary = document.getElementById('ratingSummary');
+        const avgRating = document.getElementById('avgRating');
+        const totalReviews = document.getElementById('totalReviews');
+
+        if (data.totalCount > 0) {
+            ratingSummary.style.display = 'flex';
+            avgRating.textContent = data.averageRating.toFixed(1);
+            totalReviews.textContent = `(${data.totalCount} review${data.totalCount > 1 ? 's' : ''})`;
+        } else {
+            ratingSummary.style.display = 'none';
+        }
+
+        if (data.reviews && data.reviews.length > 0) {
+            let html = '';
+            data.reviews.forEach(review => {
+                const stars = '★'.repeat(review.rating) + '☆'.repeat(5 - review.rating);
+                const date = new Date(review.createdAt).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric'
+                });
+                html += `
+                    <div class="review-card">
+                        <div class="review-header">
+                            <span class="reviewer-name">${review.userName || 'Anonymous'}</span>
+                            <span class="review-date">${date}</span>
+                        </div>
+                        <div class="review-stars">${stars}</div>
+                        <div class="review-text">${review.comment}</div>
+                    </div>
+                `;
+            });
+            reviewsList.innerHTML = html;
+        } else {
+            reviewsList.innerHTML = '<div class="no-reviews">No community reviews yet. Be the first to share your experience!</div>';
+        }
+    }
+
+    function toggleReviewForm() {
+        const form = document.getElementById('reviewForm');
+        const btn = document.getElementById('addReviewBtn');
+        if (form.style.display === 'none' || form.style.display === '') {
+            form.style.display = 'block';
+            btn.innerHTML = '<span>✖️</span> Cancel';
+        } else {
+            form.style.display = 'none';
+            btn.innerHTML = '<span>✏️</span> Write a review';
+        }
+    }
+
+    function setRating(rating) {
+        document.getElementById('rating').value = rating;
+        const stars = document.querySelectorAll('.star');
+        stars.forEach((star, index) => {
+            if (index < rating) {
+                star.classList.add('selected');
+            } else {
+                star.classList.remove('selected');
+            }
+        });
+    }
+
+    async function submitReview() {
+        const url = document.getElementById('urlInput').value;
+        const userName = document.getElementById('reviewerName').value;
+        const rating = document.getElementById('rating').value;
+        const comment = document.getElementById('reviewComment').value;
+
+        if (rating === '0') {
+            alert('Please select a star rating');
+            return;
+        }
+
+        if (!comment.trim()) {
+            alert('Please write a comment');
+            return;
+        }
+
+        if (comment.length < 5) {
+            alert('Comment must be at least 5 characters');
+            return;
+        }
+
+        const reviewData = {
+            url: url,
+            userName: userName || 'Anonymous',
+            rating: parseInt(rating),
+            comment: comment
+        };
+
+        try {
+            const response = await fetch('/api/reviews/add', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(reviewData)
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                alert('✅ Review added! Thank you for contributing.');
+                document.getElementById('reviewerName').value = '';
+                document.getElementById('rating').value = '0';
+                document.getElementById('reviewComment').value = '';
+                setRating(0);
+                toggleReviewForm();
+
+                if (currentDomain) {
+                    loadReviews(currentDomain);
+                }
+            } else {
+                alert('Error: ' + result.message);
+            }
+
+        } catch (error) {
+            alert('Error submitting review. Please try again.');
+            console.error(error);
+        }
+    }
+
+    function useExample(url) {
+        document.getElementById('urlInput').value = url;
+        checkUrl();
+    }
+
+    // Enter key support
+    document.getElementById('urlInput').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            checkUrl();
+        }
+    });
+</script>
+</body>
+</html>
