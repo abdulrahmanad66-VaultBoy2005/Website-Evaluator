@@ -41,9 +41,10 @@ public class ReviewController {
         }
     }
 
+    // FIXED: Changed from getReviewStats to getReviewsForDomain
     @GetMapping("/domain/{domain}")
     public ResponseEntity<Map<String, Object>> getDomainReviews(@PathVariable String domain) {
-        return ResponseEntity.ok(reviewService.getReviewStats(domain));
+        return ResponseEntity.ok(reviewService.getReviewsForDomain(domain));
     }
 
     public static class ReviewRequest {
@@ -60,6 +61,7 @@ public class ReviewController {
         @Size(min = 5, max = 500, message = "Comment must be between 5 and 500 characters")
         private String comment;
 
+        // Getters and Setters
         public String getUrl() { return url; }
         public void setUrl(String url) { this.url = url; }
 

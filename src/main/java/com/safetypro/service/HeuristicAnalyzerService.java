@@ -33,17 +33,37 @@ public class HeuristicAnalyzerService {
     );
 
     // Check if website actually exists
+    // Check if website actually exists (FIXED VERSION)
     public boolean doesWebsiteExist(String url) {
         try {
-            URL urlObj = new URL(url);
-            HttpURLConnection connection = (HttpURLConnection) urlObj.openConnection();
-            connection.setRequestMethod("HEAD");
-            connection.setConnectTimeout(3000);
-            connection.setReadTimeout(3000);
+            java.net.URI uri = new java.net.URI(url);
+            java.net.URL urlObj = uri.toURL();
+            java.net.HttpURLConnection connection = (java.net.HttpURLConnection) urlObj.openConnection();
+
+            // Use GET instead of HEAD (more reliable)
+            connection.setRequestMethod("GET");
+            connection.setConnectTimeout(5000); // 5 seconds timeout
+            connection.setReadTimeout(5000);
+            connection.setInstanceFollowRedirects(true); // Follow redirects
+
+            // Only check the response code, don't download content
             int responseCode = connection.getResponseCode();
+
+            // Consider 200-399 as success (including redirects)
             return (responseCode >= 200 && responseCode < 400);
-        } catch (Exception e) {
+
+        } catch (java.net.UnknownHostException e) {
+            // Domain doesn't exist
+            System.out.println("Domain does not exist: " + e.getMessage());
             return false;
+        } catch (java.net.SocketTimeoutException e) {
+            // Timeout - site might be slow but exists
+            System.out.println("Connection timeout - assuming site exists: " + e.getMessage());
+            return true; // Assume exists to avoid false positives
+        } catch (Exception e) {
+            // For SSL errors, etc. - assume site exists
+            System.out.println("Error checking existence: " + e.getMessage());
+            return true; // Don't block on technical errors
         }
     }
 
@@ -205,24 +225,32 @@ public class HeuristicAnalyzerService {
         int riskScore = 0;
 
         try {
-            // FIRST: Check if website exists
-            if (!doesWebsiteExist(url)) {
-                flags.add("🚫 This website does NOT exist or cannot be reached");
-                riskScore = 100;
-                result.setRiskScore(riskScore);
-                result.setFlags(flags);
-                result.setSummary("WEBSITE NOT FOUND - Domain may be unregistered");
-                return result;
+            // FIRST: Check if website exists - BUT DON'T RETURN IMMEDIATELY
+            boolean websiteExists = doesWebsiteExist(url);
+
+            if (!websiteExists) {
+                // Add as a warning but don't block completely
+                flags.add("⚠️ This website may be temporarily unreachable or having issues");
+                riskScore += 20; // Add some risk but not full 100
+                // Continue with other checks instead of returning
+            } else {
+                // Optional: Add a positive flag
+                flags.add("✅ Website is reachable");
             }
 
-            // GET WEBSITE AGE INFORMATION
-            Map<String, String> ageInfo = getWebsiteAgeInfo(url);
-            int monthsOld = Integer.parseInt(ageInfo.get("monthsOld"));
+            // GET WEBSITE AGE INFORMATION (with better error handling)
+            try {
+                Map<String, String> ageInfo = getWebsiteAgeInfo(url);
+                int monthsOld = Integer.parseInt(ageInfo.getOrDefault("monthsOld", "0"));
 
-            // Add age flag with months
-            if (monthsOld < 12) {
-                flags.add(ageInfo.get("message"));
-                riskScore += Integer.parseInt(ageInfo.get("riskScore"));
+                // Add age flag with months
+                if (monthsOld < 12 && monthsOld > 0) {
+                    flags.add(ageInfo.get("message"));
+                    riskScore += Integer.parseInt(ageInfo.getOrDefault("riskScore", "0"));
+                }
+            } catch (Exception e) {
+                // If age check fails, just continue
+                System.out.println("Age check failed: " + e.getMessage());
             }
 
             // REST OF HEURISTIC ANALYSIS
