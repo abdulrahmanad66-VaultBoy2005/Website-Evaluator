@@ -2,14 +2,6 @@
 
 A powerful web application that helps users identify phishing websites, scams, and malicious URLs using Google Safe Browsing API, intelligent heuristic analysis, and community reviews.
 
-![Website Evaluator Demo](https://via.placeholder.com/800x400.png?text=Website+Evaluator+Demo)
-
-## ✨ Live Demo
-
-**[🌐 Click here to try the live app](https://your-app.up.railway.app)** (Add your Railway URL here once deployed)
-
----
-
 ## 🎯 Features
 
 ### 🛡️ **Dual-Layer Security Check**
